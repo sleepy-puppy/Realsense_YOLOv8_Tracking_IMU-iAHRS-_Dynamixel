@@ -1,6 +1,6 @@
-# realsense-yolov8
+# realsense_yolov8_tracking_imu_dynamixel
 
-realsense D455
-/n yolov8 deepsort object detection
-/n tracking selected object with dynamixel motors
-/n gimbal with imu device(iAHRS)
+# realsense D455
+# yolov8 deepsort object detection
+# tracking selected object with dynamixel motors
+# gimbal with imu device(iAHRS)
