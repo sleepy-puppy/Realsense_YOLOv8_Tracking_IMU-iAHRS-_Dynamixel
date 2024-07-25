@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Route Finder</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        #controls {
+            margin-top: 10px;
+        }
+        #waypoints {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="controls">
+        <input type="text" id="start" placeholder="Start (lat, lng)">
+        <button onclick="setStart()">Set as Start</button>
+        <br>
+        <input type="text" id="end" placeholder="End (lat, lng)">
+        <button onclick="setEnd()">Set as End</button>
+        <br>
+        <button onclick="createRoute()">Generate Route</button>
+    </div>
+    <div id="waypoints">
+        <h3>Waypoints</h3>
+        <ul id="waypoints-list"></ul>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let map = L.map('map').setView([36.7634, 127.2817], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        let startMarker, endMarker, tempMarker;
+        let startCoords, endCoords;
+        let tempCoords;
+
+        function onMapClick(e) {
+            if (tempMarker) {
+                map.removeLayer(tempMarker);
+            }
+            tempCoords = [e.latlng.lat, e.latlng.lng];
+            tempMarker = L.marker([tempCoords[0], tempCoords[1]], {icon: L.icon({
+                iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+                shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            })}).addTo(map);
+        }
+
+        map.on('click', onMapClick);
+
+        function setStart() {
+            if (tempCoords) {
+                if (startMarker) {
+                    map.removeLayer(startMarker);
+                }
+                startMarker = L.marker([tempCoords[0], tempCoords[1]]).addTo(map);
+                startCoords = [tempCoords[1], tempCoords[0]];
+                document.getElementById('start').value = `${tempCoords[0]}, ${tempCoords[1]}`;
+                map.removeLayer(tempMarker);
+                tempMarker = null;
+            }
+        }
+
+        function setEnd() {
+            if (tempCoords) {
+                if (endMarker) {
+                    map.removeLayer(endMarker);
+                }
+                endMarker = L.marker([tempCoords[0], tempCoords[1]]).addTo(map);
+                endCoords = [tempCoords[1], tempCoords[0]];
+                document.getElementById('end').value = `${tempCoords[0]}, ${tempCoords[1]}`;
+                map.removeLayer(tempMarker);
+                tempMarker = null;
+            }
+        }
+
+        function createRoute() {
+            let startInput = document.getElementById('start').value.split(',').map(Number);
+            let endInput = document.getElementById('end').value.split(',').map(Number);
+
+            if (startInput.length === 2 && endInput.length === 2) {
+                startCoords = [startInput[1], startInput[0]];
+                endCoords = [endInput[1], endInput[0]];
+                fetch('/route', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ start: startCoords, end: endCoords })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (window.routeLayer) {
+                        map.removeLayer(window.routeLayer);
+                    }
+                    window.routeLayer = L.geoJSON(data.route).addTo(map);
+                    map.fitBounds(window.routeLayer.getBounds());
+
+                    let waypointsList = document.getElementById('waypoints-list');
+                    waypointsList.innerHTML = '';
+                    data.waypoints.forEach((point, index) => {
+                        let li = document.createElement('li');
+                        li.textContent = `Waypoint ${index + 1}: ${point[1]}, ${point[0]}`;
+                        waypointsList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                alert('Please select start and end points on the map.');
+            }
+        }
+    </script>
+</body>
+</html>
