@@ -1,0 +1,45 @@
+[0.715s] Invoking command in '/home/moon/ros2_ws/src/realsense_tracking': PYTHONPATH=/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base build/realsense_tracking build --build-base /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build install --record /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log --single-version-externally-managed install_data
+[1.005s] running egg_info
+[1.005s] writing build/realsense_tracking/realsense_tracking.egg-info/PKG-INFO
+[1.005s] writing dependency_links to build/realsense_tracking/realsense_tracking.egg-info/dependency_links.txt
+[1.006s] writing entry points to build/realsense_tracking/realsense_tracking.egg-info/entry_points.txt
+[1.006s] writing requirements to build/realsense_tracking/realsense_tracking.egg-info/requires.txt
+[1.006s] writing top-level names to build/realsense_tracking/realsense_tracking.egg-info/top_level.txt
+[1.007s] file realsense_pose_1.py (for module realsense_pose_1) not found
+[1.007s] file iAHRS_2.py (for module iAHRS_2) not found
+[1.007s] file dynamixel_3.py (for module dynamixel_3) not found
+[1.007s] file realtime_audio_pc_4.py (for module realtime_audio_pc_4) not found
+[1.007s] file witmotion_imu_ros_5.py (for module witmotion_imu_ros_5) not found
+[1.008s] reading manifest file 'build/realsense_tracking/realsense_tracking.egg-info/SOURCES.txt'
+[1.009s] writing manifest file 'build/realsense_tracking/realsense_tracking.egg-info/SOURCES.txt'
+[1.009s] running build
+[1.009s] running build_py
+[1.009s] file realsense_pose_1.py (for module realsense_pose_1) not found
+[1.009s] file iAHRS_2.py (for module iAHRS_2) not found
+[1.009s] file dynamixel_3.py (for module dynamixel_3) not found
+[1.009s] file realtime_audio_pc_4.py (for module realtime_audio_pc_4) not found
+[1.009s] file witmotion_imu_ros_5.py (for module witmotion_imu_ros_5) not found
+[1.009s] file realsense_pose_1.py (for module realsense_pose_1) not found
+[1.009s] file iAHRS_2.py (for module iAHRS_2) not found
+[1.009s] file dynamixel_3.py (for module dynamixel_3) not found
+[1.009s] file realtime_audio_pc_4.py (for module realtime_audio_pc_4) not found
+[1.010s] file witmotion_imu_ros_5.py (for module witmotion_imu_ros_5) not found
+[1.010s] running install
+[1.010s] running install_lib
+[1.011s] running install_data
+[1.011s] running install_egg_info
+[1.013s] removing '/home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking-0.0.0-py3.10.egg-info' (and everything under it)
+[1.013s] Copying build/realsense_tracking/realsense_tracking.egg-info to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking-0.0.0-py3.10.egg-info
+[1.014s] running install_scripts
+[1.035s] Installing dynamixel_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.035s] Installing iAHRS_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.035s] Installing realsense_pose_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.035s] Installing realtime_audio_pc_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.035s] Installing witmotion_imu_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.035s] file realsense_pose_1.py (for module realsense_pose_1) not found
+[1.035s] file iAHRS_2.py (for module iAHRS_2) not found
+[1.035s] file dynamixel_3.py (for module dynamixel_3) not found
+[1.035s] file realtime_audio_pc_4.py (for module realtime_audio_pc_4) not found
+[1.036s] file witmotion_imu_ros_5.py (for module witmotion_imu_ros_5) not found
+[1.036s] writing list of installed files to '/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log'
+[1.060s] Invoked command in '/home/moon/ros2_ws/src/realsense_tracking' returned '0': PYTHONPATH=/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base build/realsense_tracking build --build-base /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build install --record /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log --single-version-externally-managed install_data

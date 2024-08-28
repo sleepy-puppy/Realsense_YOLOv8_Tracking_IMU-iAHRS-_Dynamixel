@@ -1,0 +1,54 @@
+running egg_info
+creating build/realsense_tracking/realsense_tracking.egg-info
+writing build/realsense_tracking/realsense_tracking.egg-info/PKG-INFO
+writing dependency_links to build/realsense_tracking/realsense_tracking.egg-info/dependency_links.txt
+writing entry points to build/realsense_tracking/realsense_tracking.egg-info/entry_points.txt
+writing requirements to build/realsense_tracking/realsense_tracking.egg-info/requires.txt
+writing top-level names to build/realsense_tracking/realsense_tracking.egg-info/top_level.txt
+writing manifest file 'build/realsense_tracking/realsense_tracking.egg-info/SOURCES.txt'
+reading manifest file 'build/realsense_tracking/realsense_tracking.egg-info/SOURCES.txt'
+writing manifest file 'build/realsense_tracking/realsense_tracking.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build
+creating /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib
+creating /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+copying realsense_tracking/__init__.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+copying realsense_tracking/1_realsense_pose.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+copying realsense_tracking/2_iAHRS.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+copying realsense_tracking/3_dynamixel.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+copying realsense_tracking/4_realtime_audio_pc.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+copying realsense_tracking/5_witmotion_imu_ros.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+copying realsense_tracking/device_model.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+running install
+running install_lib
+creating /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/2_iAHRS.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/5_witmotion_imu_ros.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/4_realtime_audio_pc.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/3_dynamixel.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/1_realsense_pose.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/device_model.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/__init__.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/2_iAHRS.py to 2_iAHRS.cpython-310.pyc
+byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/5_witmotion_imu_ros.py to 5_witmotion_imu_ros.cpython-310.pyc
+byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/4_realtime_audio_pc.py to 4_realtime_audio_pc.cpython-310.pyc
+byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/3_dynamixel.py to 3_dynamixel.cpython-310.pyc
+byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/1_realsense_pose.py to 1_realsense_pose.cpython-310.pyc
+byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/device_model.py to device_model.cpython-310.pyc
+byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/__init__.py to __init__.cpython-310.pyc
+running install_data
+creating /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/share/ament_index
+creating /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/share/ament_index/resource_index
+creating /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/share/ament_index/resource_index/packages
+copying resource/realsense_tracking -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/share/ament_index/resource_index/packages
+copying package.xml -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/share/realsense_tracking
+running install_egg_info
+Copying build/realsense_tracking/realsense_tracking.egg-info to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking-0.0.0-py3.10.egg-info
+running install_scripts
+Installing dynamixel_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+Installing iAHRS_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+Installing realsense_tracker_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+Installing realtime_audio_pc_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+Installing witmotion_imu_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+writing list of installed files to '/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log'

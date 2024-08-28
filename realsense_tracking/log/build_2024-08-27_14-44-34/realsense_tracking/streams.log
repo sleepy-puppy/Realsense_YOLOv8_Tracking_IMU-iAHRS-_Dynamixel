@@ -1,0 +1,40 @@
+[0.702s] Invoking command in '/home/moon/ros2_ws/src/realsense_tracking': PYTHONPATH=/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base build/realsense_tracking build --build-base /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build install --record /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log --single-version-externally-managed install_data
+[0.993s] running egg_info
+[0.994s] writing build/realsense_tracking/realsense_tracking.egg-info/PKG-INFO
+[0.994s] writing dependency_links to build/realsense_tracking/realsense_tracking.egg-info/dependency_links.txt
+[0.994s] writing entry points to build/realsense_tracking/realsense_tracking.egg-info/entry_points.txt
+[0.994s] writing requirements to build/realsense_tracking/realsense_tracking.egg-info/requires.txt
+[0.994s] writing top-level names to build/realsense_tracking/realsense_tracking.egg-info/top_level.txt
+[0.996s] reading manifest file 'build/realsense_tracking/realsense_tracking.egg-info/SOURCES.txt'
+[0.997s] writing manifest file 'build/realsense_tracking/realsense_tracking.egg-info/SOURCES.txt'
+[0.997s] running build
+[0.997s] running build_py
+[0.997s] copying realsense_tracking/realsense_pose_1.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+[0.997s] copying realsense_tracking/iAHRS_2.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+[0.997s] copying realsense_tracking/dynamixel_3.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+[0.997s] copying realsense_tracking/realtime_audio_pc_4.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+[0.998s] copying realsense_tracking/witmotion_imu_ros_5.py -> /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking
+[0.998s] running install
+[0.998s] running install_lib
+[0.999s] copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/dynamixel_3.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+[0.999s] copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/iAHRS_2.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+[0.999s] copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/realsense_pose_1.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+[0.999s] copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/witmotion_imu_ros_5.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+[1.000s] copying /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build/lib/realsense_tracking/realtime_audio_pc_4.py -> /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking
+[1.000s] byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/dynamixel_3.py to dynamixel_3.cpython-310.pyc
+[1.002s] byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/iAHRS_2.py to iAHRS_2.cpython-310.pyc
+[1.003s] byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/realsense_pose_1.py to realsense_pose_1.cpython-310.pyc
+[1.006s] byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/witmotion_imu_ros_5.py to witmotion_imu_ros_5.cpython-310.pyc
+[1.006s] byte-compiling /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking/realtime_audio_pc_4.py to realtime_audio_pc_4.cpython-310.pyc
+[1.007s] running install_data
+[1.007s] running install_egg_info
+[1.009s] removing '/home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking-0.0.0-py3.10.egg-info' (and everything under it)
+[1.009s] Copying build/realsense_tracking/realsense_tracking.egg-info to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking-0.0.0-py3.10.egg-info
+[1.010s] running install_scripts
+[1.030s] Installing dynamixel_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.030s] Installing iAHRS_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.030s] Installing realsense_tracker_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.030s] Installing realtime_audio_pc_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.030s] Installing witmotion_imu_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[1.031s] writing list of installed files to '/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log'
+[1.057s] Invoked command in '/home/moon/ros2_ws/src/realsense_tracking' returned '0': PYTHONPATH=/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base build/realsense_tracking build --build-base /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build install --record /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log --single-version-externally-managed install_data

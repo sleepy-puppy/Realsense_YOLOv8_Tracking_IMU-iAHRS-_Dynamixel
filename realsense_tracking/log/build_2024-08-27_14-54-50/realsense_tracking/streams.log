@@ -1,0 +1,25 @@
+[0.689s] Invoking command in '/home/moon/ros2_ws/src/realsense_tracking': PYTHONPATH=/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base build/realsense_tracking build --build-base /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build install --record /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log --single-version-externally-managed install_data
+[0.970s] running egg_info
+[0.971s] writing build/realsense_tracking/realsense_tracking.egg-info/PKG-INFO
+[0.971s] writing dependency_links to build/realsense_tracking/realsense_tracking.egg-info/dependency_links.txt
+[0.971s] writing entry points to build/realsense_tracking/realsense_tracking.egg-info/entry_points.txt
+[0.971s] writing requirements to build/realsense_tracking/realsense_tracking.egg-info/requires.txt
+[0.971s] writing top-level names to build/realsense_tracking/realsense_tracking.egg-info/top_level.txt
+[0.973s] reading manifest file 'build/realsense_tracking/realsense_tracking.egg-info/SOURCES.txt'
+[0.974s] writing manifest file 'build/realsense_tracking/realsense_tracking.egg-info/SOURCES.txt'
+[0.974s] running build
+[0.974s] running build_py
+[0.975s] running install
+[0.975s] running install_lib
+[0.976s] running install_data
+[0.976s] running install_egg_info
+[0.978s] removing '/home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking-0.0.0-py3.10.egg-info' (and everything under it)
+[0.978s] Copying build/realsense_tracking/realsense_tracking.egg-info to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages/realsense_tracking-0.0.0-py3.10.egg-info
+[0.979s] running install_scripts
+[0.998s] Installing dynamixel_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[0.999s] Installing iAHRS_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[0.999s] Installing realsense_pose_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[0.999s] Installing realtime_audio_pc_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[0.999s] Installing witmotion_imu_node script to /home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/realsense_tracking
+[0.999s] writing list of installed files to '/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log'
+[1.024s] Invoked command in '/home/moon/ros2_ws/src/realsense_tracking' returned '0': PYTHONPATH=/home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/moon/ros2_ws/src/realsense_tracking/install/realsense_tracking/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base build/realsense_tracking build --build-base /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/build install --record /home/moon/ros2_ws/src/realsense_tracking/build/realsense_tracking/install.log --single-version-externally-managed install_data
