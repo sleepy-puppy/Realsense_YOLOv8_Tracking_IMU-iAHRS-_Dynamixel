@@ -1,0 +1,7 @@
+[console_scripts]
+dynamixel_node = realsense_tracking.dynamixel_3:main
+iAHRS_node = realsense_tracking.iAHRS_2:main
+realsense_pose_node = realsense_tracking.realsense_pose_1:main
+realtime_audio_pc_node = realsense_tracking.realtime_audio_pc_4:main
+witmotion_imu_node = realsense_tracking.witmotion_imu_ros_5:main
+
