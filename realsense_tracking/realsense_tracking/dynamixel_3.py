@@ -6,7 +6,6 @@ import tty
 import termios
 
 # 시리얼 포트 설정
-SERIAL_PORT = "/dev/ttyACM0"
 SERIAL_SPEED = 115200
 
 # Define constants
@@ -18,12 +17,13 @@ if MY_DXL == 'X_SERIES' or MY_DXL == 'MX_SERIES':
     ADDR_PRESENT_POSITION = 132
     LEN_PRESENT_POSITION = 4  # Data Byte Length
     ADDR_PROFILE_VELOCITY = 112
+    ADDR_PROFILE_ACCELERATION = 108
     BAUDRATE = 57600
 PROTOCOL_VERSION = 2.0
 DXL1_ID = 7
 DXL2_ID = 8
 DXL3_ID = 9
-DEVICENAME = '/dev/ttyACM0'
+DEVICENAME = '/dev/ttyCM'
 TORQUE_ENABLE = 1
 TORQUE_DISABLE = 0
 DXL_MOVING_STATUS_THRESHOLD = 20
@@ -60,6 +60,7 @@ def initialize_dynamixels():
     for dxl_id in [DXL1_ID, DXL2_ID, DXL3_ID]:
         enable_dynamixel_torque(dxl_id)
         set_dynamixel_profile_velocity(dxl_id, 100)
+        set_dynamixel_profile_acceleration(dxl_id, 30)
         move_dynamixel_to_position(dxl_id, 2048)
 
 def enable_dynamixel_torque(dxl_id):
@@ -94,6 +95,15 @@ def set_dynamixel_profile_velocity(dxl_id, velocity):
         print("%s" % packetHandler.getRxPacketError(dxl_error))
     else:
         print("Dynamixel#%d profile velocity set to %d" % (dxl_id, velocity))
+
+def set_dynamixel_profile_acceleration(dxl_id, acceleration):
+    dxl_comm_result, dxl_error = packetHandler.write4ByteTxRx(portHandler, dxl_id, ADDR_PROFILE_ACCELERATION, acceleration)
+    if dxl_comm_result != COMM_SUCCESS:
+        print("%s" % packetHandler.getTxRxResult(dxl_comm_result))
+    elif dxl_error != 0:
+        print("%s" % packetHandler.getRxPacketError(dxl_error))
+    else:
+        print("Dynamixel#%d profile acceleration set to %d" % (dxl_id, acceleration))
 
 def move_dynamixel_to_position(dxl_id, position):
     param_goal_position = [DXL_LOBYTE(DXL_LOWORD(position)),
@@ -201,13 +211,13 @@ class DynamixelNode(Node):
             self.manual_mode = True
             self.get_logger().info("Switched to manual tracking mode")
             # Now use listener_callback for manual mode
-            self.subscription.callback = self.listener_callback
+            self.subscription.callback = self.manual_imu_callback
 
         elif msg.data == 'automatic':
             self.manual_mode = False
             self.get_logger().info("Switched to automatic tracking mode")
             # Now use manual_imu_callback for automatic mode
-            self.subscription.callback = self.manual_imu_callback
+            self.subscription.callback = self.listener_callback
 
     def robot_tracking_mode_callback(self, msg):
         if msg.data == 'robot tracking start':
