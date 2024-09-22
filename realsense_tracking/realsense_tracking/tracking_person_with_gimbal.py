@@ -40,11 +40,12 @@ class DepthSubscriber(Node):
     
     def calculate_robot_w(self, yaw):
         # yaw 값을 통해 조향각 계산 (단위: degree)
+        print(f"dynamixel yaw : {self.current_yaw}")
         steering_angle = 360 * (yaw - 2048) / 4096
         
         # 조향각을 -180도에서 180도로 제한
         steering_angle = max(min(steering_angle, 180), -180)
-        print(steering_angle)
+        print(f"steering angle : {steering_angle}")
 
         if abs(steering_angle) <= 5:
             return 0.0
@@ -59,18 +60,20 @@ class DepthSubscriber(Node):
             robot_w = max_w * (steering_angle / 180.0)
             
             # 각속도는 로봇의 속도에 비례하게 조정
-            robot_w = robot_w * (self.robot_v / 0.5)
+            robot_w = robot_w * (self.robot_v / 0.2)
         
         return robot_w
 
     def calculate_robot_v(self, depth):
         # depth가 0.5m 이상 4m 이하일 때, 이를 0부터 1.0까지 선형 변환
-        min_depth = 0.5
+        min_depth = 1.5
         max_depth = 4.0
         if depth < min_depth:
             return 0.0
+        
         normalized_depth = min(max(depth - min_depth, 0), max_depth - min_depth)
-        robot_v = (normalized_depth / (max_depth - min_depth)) * 0.5
+        robot_v = (normalized_depth / (max_depth - min_depth)) * 0.2
+        print(f"depth : {depth}")
         return robot_v
 
 
