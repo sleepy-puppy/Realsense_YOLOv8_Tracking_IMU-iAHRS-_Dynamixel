@@ -331,7 +331,7 @@ class RealSenseObjectTracker(QMainWindow):
         self.tracking_thread.start()
 
     def publish_depth_continuously(self):
-        while self.tracking and self.target_id is not None:
+        while self.tracking and not self.stop_thread and self.target_id is not None:
             for track in self.person_tracks:
                 if track.track_id == self.target_id and track.is_confirmed() and track.time_since_update <= 1:
                     # 바운딩박스 중심 좌표 계산
