@@ -6,15 +6,14 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import QTimer
 import pyrealsense2 as rs
 from ultralytics import YOLO
-from deep_sort.deep_sort.tracker import Tracker as DeepSortTracker
-from deep_sort.tools import generate_detections as gdet
-from deep_sort.deep_sort import nn_matching
-from deep_sort.deep_sort.detection import Detection
+from deep_sort_realtime.deepsort_tracker import DeepSort
 import threading
 import timeit
 import rclpy
 from std_msgs.msg import Int32MultiArray, Float32MultiArray, String
 import subprocess
+import time
+
 
 class RealSenseObjectTracker(QMainWindow):
     def __init__(self):
@@ -26,11 +25,16 @@ class RealSenseObjectTracker(QMainWindow):
         
         # Realsense 및 YOLO 모델 초기화
         self.pipeline, self.align = self.initialize_realsense()
-        self.pose_model = YOLO('yolov8n-pose.pt')  # 포즈 모델
-        self.detection_model = YOLO('knife.pt')  # Knife 감지 모델
+        self.models = {
+            "person": YOLO("yolov8m-pose.pt"),
+            "knife": YOLO("knife_2.pt")
+        }
 
         # Deep SORT Tracker 초기화
-        self.tracker, self.encoder = self.initialize_tracker()
+        self.trackers = {
+            "person": DeepSort(max_age=30, n_init=3),
+            "knife": DeepSort(max_age=30, n_init=3)
+        }
 
         # ROS2 초기화
         rclpy.init()
@@ -55,7 +59,7 @@ class RealSenseObjectTracker(QMainWindow):
         self.manual_tracking_button = self.create_button("카메라 수동 트래킹", self.switch_to_manual_tracking)
         self.automatic_tracking_button = self.create_button("카메라 자동 트래킹", self.switch_to_automatic_tracking)
         self.audio_comm_button = self.create_button("현장 통신", self.send_audio_comm)
-        self.stop_audio_comm_button = self.create_button("통신 중지", self.send_stop_audio_comm)
+        self.stop_audio_comm_button = self.create_button("현장 통신 중지", self.send_stop_audio_comm)
         self.start_tracking_button = self.create_button("로봇 트래킹 시작", self.start_tracking)
         self.stop_tracking_button = self.create_button("로봇 트래킹 중지", self.stop_tracking)
 
@@ -81,7 +85,10 @@ class RealSenseObjectTracker(QMainWindow):
         self.last_detection_time = {}
         self.buttons = {}
         self.label_history = {}
+        self.dangerous_person_time = {}
+        self.person_tracks = []
         self.DISAPPEAR_THRESHOLD = 3
+        self.DANGER_THRESHOLD = 1
         self.frame = None
         self.stop_thread = False
 
@@ -94,15 +101,6 @@ class RealSenseObjectTracker(QMainWindow):
         align = rs.align(rs.stream.color)
         return pipeline, align
 
-    def initialize_tracker(self):
-        MAX_COSINE_DISTANCE = 0.3
-        NN_BUDGET = None
-        ENCODER_MODEL_FILENAME = './mars-small128.pb'
-        metric = nn_matching.NearestNeighborDistanceMetric("cosine", MAX_COSINE_DISTANCE, NN_BUDGET)
-        tracker = DeepSortTracker(metric)
-        encoder = gdet.create_box_encoder(ENCODER_MODEL_FILENAME, batch_size=1)
-        return tracker, encoder
-
     def init_ros2_publishers(self):
         self.node = rclpy.create_node('realsense_tracker_node')
         self.publisher = self.node.create_publisher(Int32MultiArray, 'to_dynamixel', 10)
@@ -110,7 +108,7 @@ class RealSenseObjectTracker(QMainWindow):
         self.tracking_mode_publisher = self.node.create_publisher(String, 'camera_tracking_mode', 10)
         self.reset_signal_publisher = self.node.create_publisher(String, 'reset_signal', 10)
         self.audio_comm_publisher = self.node.create_publisher(String, 'audio_comm', 10)
-        self.emergency_publisher = self.node.create_publisher(String, 'emergency', 10) 
+        self.emergency_publisher = self.node.create_publisher(String, 'emergency', 10)
         self.target_person_depth_publisher = self.node.create_publisher(Float32MultiArray, 'target_person_depth', 10)
         self.robot_tracking_mode_publisher = self.node.create_publisher(String, 'robot_tracking_mode', 10)
 
@@ -131,112 +129,125 @@ class RealSenseObjectTracker(QMainWindow):
         start_t = timeit.default_timer()
         current_frame = self.frame.copy()
 
-        # 포즈 모델을 사용하여 사람과 손 인식
-        pose_results = self.pose_model(current_frame)
-        hands, persons = self.get_hands_and_persons_from_pose(pose_results)
+        # 사람 및 칼 탐지 및 추적
+        person_detections, person_keypoints = self.detect_objects("person", current_frame)
+        knife_detections, _ = self.detect_objects("knife", current_frame)
+
+        self.person_tracks = self.track_objects("person", person_detections, current_frame)
+        knife_tracks = self.track_objects("knife", knife_detections, current_frame)
+
+        closest_person_id = None
+        if knife_tracks:
+            for knife_track in knife_tracks:
+                knife_center = self.get_center(knife_track.to_ltrb())
+                closest_person_id = self.find_closest_hand(knife_center, self.person_tracks, person_keypoints)
 
         if self.tracking and self.target_id is not None:
-            self.update_tracking(current_frame, persons)
+            for track in self.person_tracks:
+                if track.track_id == self.target_id and track.is_confirmed() and track.time_since_update <= 1:
+                    center_x, center_y = self.get_center(track.to_ltrb())
+                    dx1 = 280 - center_x if center_x < 280 else 0
+                    dx2 = center_x - 360 if center_x > 360 else 0
+                    dy1 = 200 - center_y if center_y < 200 else 0
+                    dy2 = center_y - 280 if center_y > 280 else 0
 
-        knife_detections = self.process_detections(current_frame)
-        detections = self.extract_features(current_frame, knife_detections)
-        self.tracker.predict()
-        self.tracker.update(detections)
+                    if (dx1 < dy1 and dx2 <= dy1) or (dx1 < dy2 and dx2 <= dy2):
+                        self.publish_data(102, 0 if center_y > 280 else 1)  # y ccw/cw
+                    elif (dy1 < dx1 and dy2 <= dx1) or (dy1 < dx2 and dy2 <= dx2):
+                        self.publish_data(101, 0 if center_x > 360 else 1)  # x ccw/cw
 
-        knife_centers = [np.array([(box.xyxy[0][0] + box.xyxy[0][2]) / 2, (box.xyxy[0][1] + box.xyxy[0][3]) / 2]) for box in knife_detections]
-        dangerous_person_ids, knife_to_person_mapping = self.detect_dangerous_person(hands, knife_centers)
-
-        self.update_buttons_and_labels(persons, dangerous_person_ids, knife_to_person_mapping)
-        self.update_ui_frame(current_frame, persons, knife_detections, dangerous_person_ids, knife_to_person_mapping)
+        # 바운딩박스 그리기 및 UI 업데이트
+        self.draw_bounding_box("person", self.person_tracks, current_frame, danger_ids=closest_person_id)
+        self.draw_bounding_box("knife", knife_tracks, current_frame)
+        self.update_buttons_and_labels(self.person_tracks, closest_person_id)
+        self.update_ui_frame(current_frame)
 
         terminate_t = timeit.default_timer()
         FPS = int(1. / (terminate_t - start_t))
 
-    def process_detections(self, frame):
-        results = self.detection_model(frame)
-        return [box for box in results[0].boxes if box.conf.item() >= 0.6]
+    def detect_objects(self, obj_type, frame):
+        model = self.models[obj_type]
+        results = model(frame, stream=False)
+        detections, keypoints = [], []
 
-    def extract_features(self, frame, detections):
-        if not detections:
-            return []
-        bboxes = np.array([box.xyxy[0].cpu().numpy() for box in detections])
-        scores = np.array([box.conf.item() for box in detections])
-        bboxes[:, 2:] -= bboxes[:, :2]  # [x, y, w, h] 형태로 변환
-        features = self.encoder(frame, bboxes)
-        return [Detection(bbox, score, feature) for bbox, score, feature in zip(bboxes, scores, features)]
+        for result in results:
+            for box in result.boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0])  # 바운딩 박스 좌표
+                conf = box.conf.item()  # 신뢰도
+                if conf > 0.5:
+                    width, height = x2 - x1, y2 - y1
+                    detections.append([[x1, y1, width, height], conf, int(box.cls.item())])
 
-    def get_hands_and_persons_from_pose(self, pose_results):
-        hands, persons = [], []
-        for result in pose_results:
-            if result.keypoints is None:
+                if obj_type == "person" and hasattr(result, "keypoints"):
+                    keypoints.append(result.keypoints)
+        return detections, keypoints
+
+    def track_objects(self, obj_type, detections, frame):
+        """DeepSORT로 객체 추적"""
+        tracks = self.trackers[obj_type].update_tracks(detections, frame=frame)
+        return tracks
+
+    def draw_bounding_box(self, obj_type, tracks, frame, danger_ids=None):
+        """추적된 객체의 바운딩박스를 그리는 함수"""
+        color_map = {"person": (0, 255, 0), "knife": (0, 0, 255)}  # 사람: 초록색, 칼: 빨간색
+
+        for track in tracks:
+            if not track.is_confirmed() or track.time_since_update > 1:
                 continue
-            keypoints = result.keypoints.xy.tolist()
-            for person_id, kp in enumerate(keypoints):
-                valid_kp = [point for point in kp if point[0] > 0 and point[1] > 0]
-                if not valid_kp:
-                    continue
-                x_min, y_min = np.min(valid_kp, axis=0)
-                x_max, y_max = np.max(valid_kp, axis=0)
-                persons.append({'id': person_id, 'bbox': [x_min, y_min, x_max, y_max]})
-                left_hand, right_hand = kp[9], kp[10]
-                if left_hand[0] > 0 and left_hand[1] > 0:
-                    hands.append({'id': person_id, 'hand': 'left', 'coords': left_hand})
-                if right_hand[0] > 0 and right_hand[1] > 0:
-                    hands.append({'id': person_id, 'hand': 'right', 'coords': right_hand})
-        return hands, persons
 
-    def detect_dangerous_person(self, hands, knife_centers):
-        dangerous_person_ids, knife_to_person_mapping = [], {}
-        for knife_center in knife_centers:
-            min_distance, closest_person_id = float('inf'), None
-            for hand in hands:
-                hand_distance = np.linalg.norm(knife_center - hand['coords'])
-                if hand_distance < min_distance:
-                    min_distance = hand_distance
-                    closest_person_id = hand['id']
-            if closest_person_id is not None:
-                dangerous_person_ids.append(closest_person_id)
-                knife_to_person_mapping[tuple(knife_center)] = closest_person_id
-        if dangerous_person_ids:
-            self.publish_emergency_signal(dangerous_person_ids)
-        return dangerous_person_ids, knife_to_person_mapping
+            track_id = track.track_id
+            x1, y1, x2, y2 = map(int, track.to_ltrb())
 
-    def update_tracking(self, current_frame, persons):
-        for person in persons:
-            if person['id'] == self.target_id:
-                self.update_tracking_center(person['bbox'])
-                depth_value = self.depth_frame.get_distance(self.global_center_x, self.global_center_y)
-                
-                # center_x = current_frame.shape[1] // 2
-                # center_y = current_frame.shape[0] // 2
-                # center_depth_value = self.depth_frame.get_distance(center_x, center_y)
+            # 위험인물은 빨간색, 일반 사람은 초록색
+            if obj_type == "person":
+                color = (0, 0, 255) if danger_ids and track_id == danger_ids else color_map[obj_type]
+            else:  # 칼은 항상 빨간색
+                color = color_map[obj_type]
 
-                
-                depth_msg = Float32MultiArray()
-                depth_msg.data = [float(self.target_id), depth_value] #float(self.global_center_x), center_depth_value]
-                self.target_person_depth_publisher.publish(depth_msg)
-                print(f"Target ID {self.target_id} depth: {depth_value:.3f} meters")
+            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+            label = f"{obj_type.capitalize()} ID: {track_id}"
+            cv2.putText(frame, label, (x1 + 5, y1 + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-    def update_tracking_center(self, bbox):
-        center_x = int((bbox[0] + bbox[2]) / 2)
-        center_y = int((bbox[1] + bbox[3]) / 2)
-        self.global_center_x = center_x
-        self.global_center_y = center_y
-        print(self.global_center_x, self.global_center_y)
-        dx1 = 280 - self.global_center_x if self.global_center_x < 280 else 0
-        dx2 = self.global_center_x - 360 if self.global_center_x > 360 else 0
-        dy1 = 200 - self.global_center_y if self.global_center_y < 200 else 0
-        dy2 = self.global_center_y - 280 if self.global_center_y > 280 else 0
-        if (dx1 < dy1 and dx2 <= dy1) or (dx1 < dy2 and dx2 <= dy2):
-            self.publish_data(102, 0 if self.global_center_y > 280 else 1)  # y ccw/cw
-        elif (dy1 < dx1 and dy2 <= dx1) or (dy1 < dx2 and dy2 <= dx2):
-            self.publish_data(101, 0 if self.global_center_x > 360 else 1)  # x ccw/cw
+    def find_closest_hand(self, knife_center, person_tracks, keypoints):
+        min_distance, closest_person_id = float('inf'), None
 
-    def update_buttons_and_labels(self, persons, dangerous_person_ids, knife_to_person_mapping):
-        current_ids = set([person['id'] for person in persons])
+        for i, track in enumerate(person_tracks):
+            if not track.is_confirmed() or track.time_since_update > 1:
+                continue
+
+            if i < len(keypoints) and keypoints[i].shape[1] >= 9:
+                left_hand = keypoints[i].xy[0][7][:2].cpu().numpy()
+                right_hand = keypoints[i].xy[0][8][:2].cpu().numpy()
+
+                distances = [np.linalg.norm(knife_center - left_hand), np.linalg.norm(knife_center - right_hand)]
+                closest_hand_distance = min(distances)
+
+                if closest_hand_distance < min_distance:
+                    min_distance = closest_hand_distance
+                    closest_person_id = track.track_id
+
+        return closest_person_id
+
+    def get_center(self, ltrb):
+        x1, y1, x2, y2 = map(int, ltrb)
+        return np.array([(x1 + x2) // 2, (y1 + y2) // 2])
+
+    def update_buttons_and_labels(self, person_tracks, dangerous_person_id):
         current_time = timeit.default_timer()
 
-        for person_id in current_ids:
+        for track in person_tracks:
+            if not track.is_confirmed() or track.time_since_update > 1:
+                continue
+
+            person_id = track.track_id
+
+            if person_id == dangerous_person_id:
+                self.dangerous_person_time[person_id] = current_time
+            else:
+                # 칼의 위치에 따라 새로운 위험 인물이 판별된 경우, 위험 인물 타이머를 초기화
+                if dangerous_person_id:
+                    self.dangerous_person_time[dangerous_person_id] = current_time
+
             if person_id not in self.buttons:
                 self.create_button_id(person_id)
                 self.button_layout.addWidget(self.buttons[person_id])
@@ -249,23 +260,15 @@ class RealSenseObjectTracker(QMainWindow):
                 del self.label_history[person_id]
                 self.publish_reset_signal()
 
-    def update_ui_frame(self, frame, persons, knife_detections, dangerous_people, knife_to_person_mapping):
-        for person in persons:
-            bbox = person['bbox']
-            person_id = person['id']
-            color = (255, 255, 255) if self.tracking and self.target_id == person_id else (0, 255, 255) if person_id in dangerous_people else (0, 0, 0)
-            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
-            cv2.putText(frame, f'ID: {person_id}', (int(bbox[0]), int(bbox[1]) + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-        for knife_index, knife_box in enumerate(knife_detections, 1):
-            bbox = knife_box.xyxy[0].cpu().numpy()
-            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 0, 255), 2)
-            knife_center = tuple(np.array([(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2]))
-            if knife_center in knife_to_person_mapping:
-                person_id = knife_to_person_mapping[knife_center]
-                cv2.putText(frame, f'Closest ID: {person_id}', (int(bbox[0]), int(bbox[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            cv2.putText(frame, f'Knife ID: {knife_index}', (int(bbox[0]), int(bbox[1]) + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+            if person_id in self.dangerous_person_time and current_time - self.dangerous_person_time[person_id] > self.DANGER_THRESHOLD:
+                del self.dangerous_person_time[person_id]
+                self.publish_reset_signal()
 
+        if dangerous_person_id:
+            self.publish_emergency_signal([dangerous_person_id])
+
+    def update_ui_frame(self, frame):
         color_image = cv2.resize(frame, (640, 360))
         h, w, ch = color_image.shape
         bytes_per_line = ch * w
@@ -274,24 +277,87 @@ class RealSenseObjectTracker(QMainWindow):
         self.label.setPixmap(pixmap)
         self.label.setFixedSize(w, h)
 
-    def start_autonomous_driving(self):
-        subprocess.Popen(['ros2', 'launch', 'gps_navigation', 'buddybot_launch.py'])
-        print("GPS_navigation pkg start")
+    """카메라 수동 트래킹"""
+    def switch_to_manual_tracking(self):
+        msg = String()
+        msg.data = 'manual'
+        self.tracking_mode_publisher.publish(msg)
+        print("Switched to manual tracking mode")
+
+    """카메라 자동 트래킹"""
+    def switch_to_automatic_tracking(self):
+        msg = String()
+        msg.data = 'automatic'
+        self.tracking_mode_publisher.publish(msg)
+        print("Switched to automatic tracking mode")
+
+    def create_button_id(self, track_id):
+        button = QPushButton(str(track_id), self)
+        button.clicked.connect(lambda: self.on_button_click(track_id))
+        self.buttons[track_id] = button
+
+    def on_button_click(self, track_id):
+        self.target_id = track_id
+        self.send_start_signal()
+        self.tracking = True
 
     def publish_data(self, dxl_id, direction):
         data = Int32MultiArray(data=(dxl_id, direction))
         self.publisher.publish(data)
 
-    def create_button_id(self, track_id):
-        button = QPushButton(str(track_id), self)
-        button.clicked.connect(self.on_button_click)
-        self.buttons[track_id] = button
-
-    def send_start_signal(self):
+    """현장 통신"""
+    def send_audio_comm(self):
         msg = String()
-        msg.data = 'Start'
-        self.start_signal_publisher.publish(msg)
-        print("Start signal sent")
+        msg.data = 'Audio communication triggered'
+        self.audio_comm_publisher.publish(msg)
+        print("Audio communication message sent")
+
+    """현장 통신 중지"""
+    def send_stop_audio_comm(self):
+        msg = String()
+        msg.data = 'Audio communication stopped'
+        self.audio_comm_publisher.publish(msg)
+        print("Audio communication stop message sent")
+
+    """로봇 트래킹 시작"""
+    def start_tracking(self):
+        msg = String()
+        msg.data = 'robot tracking start'
+        self.robot_tracking_mode_publisher.publish(msg)
+        print("Tracking started")
+        
+        self.tracking = True
+        self.tracking_thread = threading.Thread(target=self.publish_depth_continuously)
+        self.tracking_thread.start()
+
+    def publish_depth_continuously(self):
+        while self.tracking and self.target_id is not None:
+            for track in self.person_tracks:
+                if track.track_id == self.target_id and track.is_confirmed() and track.time_since_update <= 1:
+                    # 바운딩박스 중심 좌표 계산
+                    center_x, center_y = self.get_center(track.to_ltrb())
+
+                    # 중앙점에 해당하는 깊이값(depth) 계산
+                    depth_value = self.depth_frame.get_distance(center_x, center_y)
+
+                    # 거리 값을 ROS2 메시지로 발행
+                    depth_msg = Float32MultiArray()
+                    depth_msg.data = [float(self.target_id), float(depth_value)]
+                    self.target_person_depth_publisher.publish(depth_msg)
+                    print(f"Published depth: {depth_value} for target ID: {self.target_id}")
+
+            time.sleep(0.1)  # 0.1초 간격으로 계속 발행
+
+    """로봇 트래킹 중지"""
+    def stop_tracking(self):
+        self.tracking = False
+        self.tracking_thread.join()  # 추적 중지 시 쓰레드 종료
+        msg = String()
+        msg.data = 'robot tracking stop'
+        self.robot_tracking_mode_publisher.publish(msg)
+        print("Tracking stopped")
+
+        self.target_id = None
 
     def publish_reset_signal(self):
         msg = String()
@@ -299,46 +365,11 @@ class RealSenseObjectTracker(QMainWindow):
         self.reset_signal_publisher.publish(msg)
         print("Reset signal sent")
 
-    def on_button_click(self):
-        sender = self.sender()
-        if sender:
-            self.target_id = int(sender.text())
-            self.send_start_signal()
-            self.tracking = True
-
-    def start_tracking(self):
+    def send_start_signal(self):
         msg = String()
-        msg.data = 'robot tracking start'
-        self.robot_tracking_mode_publisher.publish(msg)
-        print("Tracking started")
-
-    def stop_tracking(self):
-        msg = String()
-        msg.data = 'robot tracking stop'
-        self.robot_tracking_mode_publisher.publish(msg)
-        print("Tracking stopped")
-
-    def switch_to_manual_tracking(self):
-        msg = String()
-        msg.data = 'manual'
-        self.tracking_mode_publisher.publish(msg)
-
-    def switch_to_automatic_tracking(self):
-        msg = String()
-        msg.data = 'automatic'
-        self.tracking_mode_publisher.publish(msg)
-
-    def send_audio_comm(self):
-        msg = String()
-        msg.data = 'Audio communication triggered'
-        self.audio_comm_publisher.publish(msg)
-        print("Audio communication message sent")
-
-    def send_stop_audio_comm(self):
-        msg = String()
-        msg.data = 'Audio communication stopped'
-        self.audio_comm_publisher.publish(msg)
-        print("Audio communication stop message sent")
+        msg.data = 'Start'
+        self.start_signal_publisher.publish(msg)
+        print("Start signal sent")
 
     def publish_emergency_signal(self, dangerous_person_ids):
         msg = String()
@@ -346,10 +377,16 @@ class RealSenseObjectTracker(QMainWindow):
         self.emergency_publisher.publish(msg)
         print("Emergency signal sent")
 
+    """로봇 자동 주행"""
+    def start_autonomous_driving(self):
+        subprocess.Popen(['ros2', 'launch', 'gps_navigation', 'buddybot_launch.py'])
+        print("GPS_navigation pkg start")
+
     def closeEvent(self, event):
         self.stop_thread = True
         self.pipeline.stop()
         event.accept()
+
 
 def main():
     app = QApplication(sys.argv)
@@ -359,6 +396,7 @@ def main():
         sys.exit(app.exec_())
     except SystemExit:
         print('Closing Window...')
+
 
 if __name__ == '__main__':
     main()
