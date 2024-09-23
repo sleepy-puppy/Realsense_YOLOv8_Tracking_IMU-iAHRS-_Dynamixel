@@ -106,6 +106,12 @@ def set_dynamixel_profile_acceleration(dxl_id, acceleration):
         print("Dynamixel#%d profile acceleration set to %d" % (dxl_id, acceleration))
 
 def move_dynamixel_to_position(dxl_id, position):
+    if position > 4096:
+        position = 4091
+    # 목표 위치가 0보다 작으면 0으로 제한
+    elif position < 0:
+        position = 5
+
     param_goal_position = [DXL_LOBYTE(DXL_LOWORD(position)),
                            DXL_HIBYTE(DXL_LOWORD(position)),
                            DXL_LOBYTE(DXL_HIWORD(position)),
@@ -227,6 +233,7 @@ class DynamixelNode(Node):
             self.get_logger().info("Stopping yaw position publishing")
             if hasattr(self, 'timer'):
                 self.timer.cancel()
+                del self.timer
 
     def publish_yaw_position(self):
         yaw_position = read_dynamixel_position(DXL1_ID)
