@@ -4,6 +4,8 @@ from std_msgs.msg import Int32MultiArray, String, Int32
 from dynamixel_sdk import *
 import tty
 import termios
+import time
+import Jetson.GPIO as GPIO
 
 # 시리얼 포트 설정
 SERIAL_SPEED = 115200
@@ -23,6 +25,12 @@ PROTOCOL_VERSION = 2.0
 DXL1_ID = 7
 DXL2_ID = 8
 DXL3_ID = 9
+
+DXL_Gim1_ID = 13
+DXL_Gim2_ID = 14
+JAO_laser_pin = 22
+JAO_laser_on = False
+
 DEVICENAME = '/dev/ttyCM'
 TORQUE_ENABLE = 1
 TORQUE_DISABLE = 0
@@ -36,6 +44,10 @@ packetHandler = PacketHandler(PROTOCOL_VERSION)
 groupSyncWrite = GroupSyncWrite(portHandler, packetHandler, ADDR_GOAL_POSITION, LEN_GOAL_POSITION)
 # Initialize GroupSyncRead instance for Present Position
 groupSyncRead = GroupSyncRead(portHandler, packetHandler, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION)
+
+def init_jetson_gun():
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(JAO_laser_pin, GPIO.OUT, initial=GPIO.HIGH)
 
 def initialize_dynamixels():
     # Open port
@@ -57,7 +69,7 @@ def initialize_dynamixels():
         quit()
 
     # Enable and initialize Dynamixel motors
-    for dxl_id in [DXL1_ID, DXL2_ID, DXL3_ID]:
+    for dxl_id in [DXL1_ID, DXL2_ID, DXL3_ID, DXL_Gim1_ID, DXL_Gim2_ID]:
         enable_dynamixel_torque(dxl_id)
         set_dynamixel_profile_velocity(dxl_id, 100)
         set_dynamixel_profile_acceleration(dxl_id, 30)
@@ -107,10 +119,10 @@ def set_dynamixel_profile_acceleration(dxl_id, acceleration):
 
 def move_dynamixel_to_position(dxl_id, position):
     if position > 4096:
-        position = 4091
+        position = 4095
     # 목표 위치가 0보다 작으면 0으로 제한
     elif position < 0:
-        position = 5
+        position = 1
 
     param_goal_position = [DXL_LOBYTE(DXL_LOWORD(position)),
                            DXL_HIBYTE(DXL_LOWORD(position)),
@@ -174,13 +186,13 @@ class DynamixelNode(Node):
             print("Received data - x:", id, "y:", index)
 
             if id == 101:
-                id = DXL1_ID
+                oper(DXL1_ID, index)
+                oper(DXL_Gim1_ID, index)
             elif id == 102:
-                id = DXL2_ID
+                oper(DXL2_ID, index)
+                oper(DXL_Gim2_ID, index)
             elif id == 103:
-                id = DXL3_ID
-
-            oper(id, index)
+                oper(DXL3_ID, index)
 
     def manual_imu_callback(self, msg):
         if self.manual_mode and len(msg.data) == 3:
@@ -191,17 +203,21 @@ class DynamixelNode(Node):
             if 0 < ang_yaw < 180:
                 move_to_position = int(2048 + 11.3777*ang_yaw)
                 move_dynamixel_to_position(DXL1_ID, move_to_position)  # yaw +
+                move_dynamixel_to_position(DXL_Gim1_ID, 2048)
             else :
                 move_to_position = int(2048 - 11.3777*ang_yaw)
                 move_dynamixel_to_position(DXL1_ID, move_to_position)  # yaw -
+                move_dynamixel_to_position(DXL_Gim1_ID, 2048)
 
             # pitch  up(ccw) : +, down(cw) : -
             if 0 < ang_pitch < 180:
                 move_to_position = int(2048 + 11.3777*ang_pitch)
                 move_dynamixel_to_position(DXL2_ID, move_to_position)  # pitch +
+                move_dynamixel_to_position(DXL_Gim2_ID, 2048)
             else :
                 move_to_position = int(2048 - 11.3777*ang_pitch)
                 move_dynamixel_to_position(DXL2_ID, move_to_position)  # pitch -
+                move_dynamixel_to_position(DXL_Gim2_ID, 2048)
 
             # roll   ccw : +, cw : -
             if 0 < ang_roll < 180:
@@ -241,6 +257,7 @@ class DynamixelNode(Node):
         self.get_logger().info(f"Published yaw position: {yaw_position}")
 
 def main(args=None):
+    init_jetson_gun()
     rclpy.init(args=args)
     dynamixel_node = DynamixelNode()
     rclpy.spin(dynamixel_node)
@@ -273,6 +290,8 @@ def dynamixel_thread():
 
     # Close port
     portHandler.closePort()
+
+    GPIO.cleanup()
 
 initialize_dynamixels()
 dynamixel_thread()
