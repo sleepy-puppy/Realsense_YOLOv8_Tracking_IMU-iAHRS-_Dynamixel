@@ -187,6 +187,8 @@ class DynamixelNode(Node):
 
         th = (pos1 - 2048) / 2048 * math.pi # [rad]
         theta = math.acos((2014300 + pow(260 + 1500 * math.sin(th), 2) + pow(1500 * math.cos(th) - 410, 2)) / (3000 * math.sqrt(pow(260 + 1500 * math.sin(th), 2) + pow(410 - 1500 * math.cos(th), 2))))
+        if th < 0:
+            theta = -theta
         gimpos = theta / math.pi * 2048 + 2048
         move_dynamixel_to_position(DXL_Gim1_ID, gimpos)
         move_dynamixel_to_position(DXL_Gim2_ID, pos2)
