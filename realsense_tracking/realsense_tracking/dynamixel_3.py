@@ -6,6 +6,7 @@ import tty
 import termios
 import time
 import Jetson.GPIO as GPIO
+import math
 
 # 시리얼 포트 설정
 SERIAL_SPEED = 115200
@@ -178,7 +179,18 @@ class DynamixelNode(Node):
 
         # State Variables
         self.manual_mode = False
+        
+    def gimbal_tracking():
+        linear_distance = 1.5 # Distance of Cam to Object
+        pos1 = read_dynamixel_position(DXL1_ID)
+        pos2 = read_dynamixel_position(DXL2_ID)
 
+        th = (pos1 - 2048) / 2048 * math.pi # [rad]
+        theta = math.acos((2014300 + pow(260 + 1500 * math.sin(th), 2) + pow(1500 * math.cos(th) - 410, 2)) / (3000 * math.sqrt(pow(260 + 1500 * math.sin(th), 2) + pow(410 - 1500 * math.cos(th), 2))))
+        gimpos = theta / math.pi * 2048 + 2048
+        move_dynamixel_to_position(DXL_Gim1_ID, gimpos)
+        move_dynamixel_to_position(DXL_Gim2_ID, pos2)
+        
     def listener_callback(self, msg):
         if len(msg.data) >= 2:
             id = msg.data[0]
@@ -187,12 +199,12 @@ class DynamixelNode(Node):
 
             if id == 101:
                 oper(DXL1_ID, index)
-                oper(DXL_Gim1_ID, index)
             elif id == 102:
                 oper(DXL2_ID, index)
-                oper(DXL_Gim2_ID, index)
             elif id == 103:
                 oper(DXL3_ID, index)
+
+            self.gimbal_tracking()
 
     def manual_imu_callback(self, msg):
         if self.manual_mode and len(msg.data) == 3:
